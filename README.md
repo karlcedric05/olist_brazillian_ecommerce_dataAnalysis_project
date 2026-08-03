@@ -9,7 +9,6 @@ Dataset link: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 // Also available for viewing in the dataset folder
 
 ## Tools used
-Microsoft SQL Server 
-Draw.io
+Microsoft SQL Server & Draw.io
 
 ## Future improvements
