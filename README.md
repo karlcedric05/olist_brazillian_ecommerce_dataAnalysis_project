@@ -6,8 +6,10 @@ This is a project for building a modern data warehouse using SQL server, alongsi
 ## Dataset
 Source: Brazilian E-Commerce Public Dataset by Olist ON KAGGLE
 Dataset link: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+// Also available for viewing in the dataset folder
 
 ## Tools used
-Microsoft SQL Server
+Microsoft SQL Server 
+Draw.io
 
 ## Future improvements
