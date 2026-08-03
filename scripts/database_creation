@@ -1,0 +1,18 @@
+/*  Creates the SQL Server database that will host the data warehouse
+  and establishes the foundational schemas following the Medallion
+  Architecture (Bronze, Silver, Gold).  */
+
+-- Creating the primary database to store all warehouse objects.
+CREATE DATABASE data_warehouse
+
+-- Bronze schema stores raw data as received from source systems.
+CREATE SCHEMA bronze;
+GO
+
+-- Silver schema stores validated, cleansed, and transformed datasets.
+CREATE SCHEMA silver;
+GO
+
+-- Gold schema stores business-ready models optimized for reporting
+-- and analytical consumption.
+CREATE SCHEMA gold;
