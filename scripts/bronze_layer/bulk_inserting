@@ -1,6 +1,6 @@
 -- Import customer master data into the Bronze layer.
 
-BULK INSERT [bronze].[customers_dataset]
+BULK INSERT [bronze].[customers_dataset] -- The corresponding table name
 FROM -- insert file path
 WITH (
     FORMAT = 'CSV',
