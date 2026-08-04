@@ -1,1 +1,114 @@
+-- Import customer master data into the Bronze layer.
 
+BULK INSERT [bronze].[customers_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,                 -- Skip the CSV header row.
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',           -- Import UTF-8 encoded files.
+    TABLOCK                       -- Acquire a table lock to improve bulk load performance.
+);
+
+-- Import geolocation reference data.
+BULK INSERT [bronze].[geolocation_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import order line-item details.
+BULK INSERT [bronze].[order_items_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import payment transaction data.
+BULK INSERT [bronze].[order_payments_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',               -- NOTE: A comma is required after this line.
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import customer review data.
+-- Uses only the default CSV parser options due to compatibility considerations
+-- with free-text review comments.
+BULK INSERT [bronze].[order_reviews_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2
+);
+
+-- Import order header information.
+BULK INSERT [bronze].[orders_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import product category translation reference data.
+BULK INSERT [bronze].[product_category_name_translation]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import product master data.
+BULK INSERT [bronze].[products_dataset]
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
+
+-- Import seller master data.
+BULK INSERT bronze.sellers_dataset
+FROM -- insert file path
+WITH (
+    FORMAT = 'CSV',
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    FIELDQUOTE = '"',
+    ROWTERMINATOR = '0x0A',
+    CODEPAGE = '65001',
+    TABLOCK
+);
