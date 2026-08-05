@@ -1,0 +1,31 @@
+-- Followiing are the observations on the bronze layer tables/dataset.
+-- Included as well the brief description for each.
+
+-- Customer's details (Unique ID/ID, and their location)
+SELECT TOP 10 * FROM [bronze].[customers_dataset]
+
+-- Information about all the possible locations of customers
+SELECT TOP 10 * FROM [bronze].[geolocation_dataset]
+
+-- All transactions occured with details (Order/Customer ID, status and dates regarding orders)
+SELECT * FROM [bronze].[orders_dataset]
+ORDER BY order_purchase_timestamp -- checking the date range of the data (September 2016 - October 2018)
+
+-- Extra information about the orders pertaining to the payment amounts and methods
+SELECT TOP 10 * FROM [bronze].[order_payments_dataset]
+
+-- Reviews from each orders from the customer (review score, and some comments 
+-- (almost all are null values), dates when reviews occured)
+SELECT TOP 10 * FROM [bronze].[order_reviews_dataset]
+
+-- Useful information connecting the orders to the products and its price, freight value (which I might refer to as shipping fee) 
+SELECT TOP 10 * FROM [bronze].[order_items_dataset]
+
+-- Information about the seller in every orders that occured
+SELECT TOP 10 * FROM [bronze].[sellers_dataset]
+
+-- Information of the specific product (categories, dimensions (height, length, etc.))
+SELECT TOP 10 * FROM [bronze].[products_dataset]
+
+-- Products' category name translation to English
+SELECT TOP 10 * FROM [bronze].[product_category_name_translation]
