@@ -1,0 +1,28 @@
+-- Data quality checking (nulls/ duplicated values)
+-- I will also put the query at the very end part of each section to show the changes that I made to transform the data before storing into the silver layer
+-- Documentations will also be included to reason each decision making 
+
+-- ============================================================================================================================== 
+
+-- Customers' dataset
+-- Checking null values
+SELECT * FROM [bronze].[customers_dataset]
+WHERE customer_unique_id IS NULL OR customer_zip_code_prefix IS NULL OR customer_city IS NULL OR customer_state IS NULL
+
+-- Checking any duplicated values
+SELECT COUNT(customer_id) FROM [bronze].[customers_dataset]
+GROUP BY customer_id
+HAVING COUNT(DISTINCT customer_id) != 1
+
+-- Checking Customers' city and state distinct values (checking if there are inconsistencies regarding values)
+
+SELECT DISTINCT customer_city FROM [bronze].[customers_dataset]
+ORDER BY customer_city
+
+SELECT DISTINCT customer_state FROM [bronze].[customers_dataset]
+ORDER BY customer_state
+
+-- Seems like data in this table is tidy and therefore ready to be put into the silver layer
+SELECT * FROM [bronze].[customers_dataset]
+
+-- ============================================================================================================================== 
