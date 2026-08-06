@@ -231,3 +231,39 @@ WHERE order_id IN (
 -- is an expected characteristic of the transactional model and accurately represents the contents of each order.
 SELECT * FROM [bronze].[order_items_dataset]
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Products dataset
+
+-- Checking for NULL values.
+SELECT *
+FROM [bronze].[products_dataset]
+WHERE product_name_length IS NULL
+
+-- A consistent pattern was observed where certain products have NULL values
+-- in the following columns:
+--   • product_category_name
+--   • product_name_length
+--   • product_description_lenght
+--   • product_photos_qty
+-- This suggests that these products have incomplete descriptive information, such as missing category assignments, product descriptions, or product images.
+
+-- The dataset contains no duplicate product records, making product_id a reliable unique identifier.
+-- Additionally, all product measurement columns contain valid values, with no negative weights or dimensions detected.
+
+-- The dataset requires only minor standardization before being promoted to the Silver layer.
+-- Missing product categories will be standardized to 'n/a', while missing
+-- descriptive attributes (name length, description length, and photo count)
+-- will be replaced with 0 to represent unavailable metadata.
+SELECT
+	product_id,
+	ISNULL(product_category_name, 'n/a') AS product_category_name,
+	ISNULL(product_name_length, 0) AS product_name_length,
+	ISNULL(product_description_lenght, 0) AS product_description_lenght,
+	ISNULL(product_photos_qty, 0) AS product_photos_qty,
+	product_weight_g,
+	product_length_cm,
+	product_height_cm,
+	product_width_cm
+FROM [bronze].[products_dataset]
+-- ============================================================================================================================== 
