@@ -91,7 +91,7 @@ ORDER BY order_id, payment_sequential
 -- This indicates that a single order may be paid using multiple payment transactions
 -- or a combination of different payment methods.
 
--- 'not_defined' will be standardized to 'unknown' to maintain consistent representation
+-- 'not_defined' will be standardized to 'n/a' to maintain consistent representation
 -- of unknown or unavailable values across all datasets in the data warehouse.
 -- The following query prepares the dataset for the Silver layer.
 
@@ -99,7 +99,7 @@ SELECT
 	order_id,
 	payment_sequential,
 	CASE
-		WHEN payment_type = 'not_defined' THEN 'unknown'
+		WHEN payment_type = 'not_defined' THEN 'n/a'
 		ELSE payment_type
 	END AS payment_type,
 	payment_installments,
