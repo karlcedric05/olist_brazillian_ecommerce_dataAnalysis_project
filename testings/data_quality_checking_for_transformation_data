@@ -151,8 +151,8 @@ WHERE order_id IN (
     FROM (
         SELECT
             ROW_NUMBER() OVER (
-                PARTITION BY order_id
-                ORDER BY review_creation_date
+                PARTITION BY order_id -- To catch order IDs that has duplicates
+                ORDER BY review_creation_date -- Order it by the creation date so that the first occurence shows up first
             ) AS order_id_count,
             review_id,
             order_id,
@@ -162,7 +162,7 @@ WHERE order_id IN (
             review_answer_timestamp
         FROM [bronze].[order_reviews_dataset]
     ) t
-    WHERE order_id_count > 1
+    WHERE order_id_count > 1 -- Filtering so that the query would return order IDs that is mentioned multiple times
 )
 ORDER BY order_id, review_creation_date
 -- Some orders are associated with multiple review records. Each review has a unique review_id, 
@@ -173,13 +173,13 @@ ORDER BY order_id, review_creation_date
 -- Investigating review IDs associated with multiple orders.
 SELECT *
 FROM [bronze].[order_reviews_dataset]
-WHERE review_id IN (
-    SELECT review_id
+WHERE review_id IN ( 
+    SELECT review_id -- Get all the review IDs 
     FROM (
         SELECT
             ROW_NUMBER() OVER (
-                PARTITION BY review_id
-                ORDER BY review_creation_date
+                PARTITION BY review_id -- Grouped by similar review IDs
+                ORDER BY review_creation_date -- Order it by the creation date so that the first occurence shows up first
             ) AS review_id_count,
             review_id,
             order_id,
@@ -189,7 +189,7 @@ WHERE review_id IN (
             review_answer_timestamp
         FROM [bronze].[order_reviews_dataset]
     ) t
-    WHERE review_id_count > 1
+    WHERE review_id_count > 1 -- Filtering so that the query would just return the review IDs that showed up multiple times
 )
 ORDER BY review_id, review_creation_date
 -- Some review IDs are associated with multiple orders. This indicates that a single customer review was linked to 
