@@ -276,3 +276,12 @@ FROM [bronze].[products_dataset]
 SELECT *
 FROM [bronze].[sellers_dataset]
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Product category name translation dataset
+-- NO NULL values in the table
+-- NO Duplicated values as well
+-- NO transformation needed for this dataset
+SELECT *
+FROM [bronze].[product_category_name_translation]
+-- ============================================================================================================================== 
