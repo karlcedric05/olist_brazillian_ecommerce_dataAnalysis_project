@@ -1,0 +1,23 @@
+INSERT INTO [silver].[customers_dataset] 
+	(customer_id,
+	customer_unique_id,
+	customer_zip_code_prefix,
+	customer_city,
+	customer_state)
+SELECT 
+	*
+FROM [bronze].[customers_dataset] -- Inserting to Silver layer customers dataset the transformation from Bronze layer
+
+INSERT INTO [silver].[orders_dataset]
+	(
+	[order_id],
+	[customer_id],
+	[order_status],
+	[order_purchase_timestamp],
+	[order_approved_at],
+	[order_delivered_carrier_date],
+	[order_delivered_customer_date],
+	[order_estimated_delivery_date]
+	)
+
+SELECT * FROM [bronze].[orders_dataset] -- Inserting to Silver layer orders dataset the transformation from Bronze layer
