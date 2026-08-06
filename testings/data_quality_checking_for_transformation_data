@@ -27,8 +27,7 @@ ORDER BY customer_state
 
 -- The dataset appears to be clean, with no missing values in the inspected columns,
 -- no duplicate customer records, and no obvious inconsistencies in city or state values.
--- Based on these findings, the dataset is ready to be promoted to the Silver layer
--- for further cleansing and standardization.
+-- Based on these findings, the dataset is ready to be promoted to the Silver layer.
 
 SELECT * FROM [bronze].[customers_dataset]
 -- ============================================================================================================================== 
@@ -64,7 +63,7 @@ WHERE order_approved_at IS NULL AND order_delivered_carrier_date IS NULL AND ord
 
 -- The table contains no duplicate records, which simplifies the data quality assessment.
 -- Additionally, the observed NULL values are consistent with the business process and can be logically explained.
--- With these findings, the dataset is ready to proceed to the Silver layer.\
+-- With these findings, the dataset is ready to proceed to the Silver layer.
 
 SELECT * FROM [bronze].[orders_dataset] 
 -- ============================================================================================================================== 
