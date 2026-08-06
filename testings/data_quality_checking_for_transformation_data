@@ -1,11 +1,11 @@
--- Data quality checking (nulls/ duplicated values)
+-- Data quality checking (nulls, duplicated values, inconsistent values, etc.)
 -- I will also put the query at the very end part of each section to show the changes that I made to transform the data before storing into the silver layer
 -- Documentations will also be included to reason each decision making 
 
 -- ============================================================================================================================== 
 -- ============================================================================================================================== 
 
--- Customers' dataset
+-- Customers dataset
 
 -- Checking for NULL values
 SELECT * FROM [bronze].[customers_dataset]
@@ -33,7 +33,7 @@ SELECT * FROM [bronze].[customers_dataset]
 -- ============================================================================================================================== 
 -- ============================================================================================================================== 
 
--- Orders' dataset
+-- Orders dataset
 
 -- Checking for NULL values
 
@@ -66,4 +66,43 @@ WHERE order_approved_at IS NULL AND order_delivered_carrier_date IS NULL AND ord
 -- With these findings, the dataset is ready to proceed to the Silver layer.
 
 SELECT * FROM [bronze].[orders_dataset] 
+-- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Order Payments dataset
+
+-- Checking for NULL values
+-- No NULL values were found in any column, indicating that the dataset is complete.
+
+-- Checking for invalid payment amounts (negative values) and invalid installment counts.
+SELECT * FROM [bronze].[order_payments_dataset]
+WHERE payment_installments < 0 OR payment_value < 0
+ 
+-- Identifying the distinct payment methods used across all orders.
+SELECT DISTINCT(payment_type) FROM [bronze].[order_payments_dataset]
+-- The dataset contains the following payment methods:
+-- credit_card, debit_card, voucher, boleto, and not_defined.
+
+-- Examining the relationship between each order and its payment sequence.
+SELECT * FROM [bronze].[order_payments_dataset]
+ORDER BY order_id, payment_sequential
+-- The payment_sequential column represents the sequence of payment transactions
+-- associated with the same order (e.g., 1 → 2 → ... → n).
+-- This indicates that a single order may be paid using multiple payment transactions
+-- or a combination of different payment methods.
+
+-- 'not_defined' will be standardized to 'unknown' to maintain consistent representation
+-- of unknown or unavailable values across all datasets in the data warehouse.
+-- The following query prepares the dataset for the Silver layer.
+
+SELECT 
+	order_id,
+	payment_sequential,
+	CASE
+		WHEN payment_type = 'not_defined' THEN 'unknown'
+		ELSE payment_type
+	END AS payment_type,
+	payment_installments,
+	payment_value
+FROM [bronze].[order_payments_dataset]
 -- ============================================================================================================================== 
