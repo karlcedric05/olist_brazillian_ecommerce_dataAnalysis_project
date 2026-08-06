@@ -208,3 +208,26 @@ SELECT
     review_answer_timestamp
 FROM [bronze].[order_reviews_dataset]
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Order Items dataset
+-- No NULL values were found in the dataset.
+-- Investigating orders that contain multiple line items.
+SELECT *
+FROM [bronze].[order_items_dataset]
+WHERE order_id IN (
+    SELECT DISTINCT(order_id)
+    FROM [bronze].[order_items_dataset]
+    WHERE order_item_id != 1
+) -- Selects orders containing more than one line item.
+
+-- The results show that some orders consist of multiple line items, identified by order_item_id values greater than 1.
+-- These line items may represent:
+--  • Different products purchased within the same order (different products purchased at once), or 
+--  • Multiple units of the same product recorded as separate line items. (e.g. quantities higher than one)
+
+
+-- No data quality issues were identified during the assessment. The presence of multiple line items within the same order
+-- is an expected characteristic of the transactional model and accurately represents the contents of each order.
+SELECT * FROM [bronze].[order_items_dataset]
+-- ============================================================================================================================== 
