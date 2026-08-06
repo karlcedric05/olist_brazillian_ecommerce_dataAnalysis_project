@@ -285,3 +285,12 @@ FROM [bronze].[sellers_dataset]
 SELECT *
 FROM [bronze].[product_category_name_translation]
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Geolocation dataset
+-- NO NULL values in the table
+-- NO Duplicated values as well
+-- NO transformation needed for this dataset
+SELECT *
+FROM [bronze].[geolocation_dataset]
+-- ==============================================================================================================================
