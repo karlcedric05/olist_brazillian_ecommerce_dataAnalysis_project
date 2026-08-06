@@ -1,3 +1,7 @@
+-- Following sytaxes are used to insert transformed datas into each corresponding silver layer tables.
+-- The data transformation decision-making is available for viewing in the testings/data_quality_checking_for_transformation.
+-- Viewing it is encourage as each decision is decumented and understanding of the tables are also displayed.
+
 INSERT INTO [silver].[customers_dataset] 
 	(customer_id,
 	customer_unique_id,
