@@ -21,3 +21,52 @@ INSERT INTO [silver].[orders_dataset]
 	)
 
 SELECT * FROM [bronze].[orders_dataset] -- Inserting to Silver layer orders dataset the transformation from Bronze layer
+
+INSERT INTO [silver].[order_payments_dataset]
+	([order_id],
+	[payment_sequential],
+	[payment_type],
+	[payment_installments],
+	[payment_value])
+SELECT 
+	order_id,
+	payment_sequential,
+	CASE
+		WHEN payment_type = 'not_defined' THEN 'n/a'
+		ELSE payment_type
+	END AS payment_type,
+	payment_installments,
+	payment_value
+FROM [bronze].[order_payments_dataset]
+
+INSERT INTO [silver].[products_dataset]
+	([product_id],
+    [product_category_name],
+    [product_name_length],
+    [product_description_lenght],
+    [product_photos_qty],
+    [product_weight_g],
+    [product_length_cm],
+	[product_height_cm],
+	[product_width_cm]
+	)
+SELECT
+	product_id,
+	ISNULL(product_category_name, 'n/a') AS product_category_name,
+	ISNULL(product_name_length, 0) AS product_name_length,
+	ISNULL(product_description_lenght, 0) AS product_description_lenght,
+	ISNULL(product_photos_qty, 0) AS product_photos_qty,
+	product_weight_g,
+	product_length_cm,
+	product_height_cm,
+	product_width_cm
+FROM [bronze].[products_dataset]
+
+INSERT INTO [silver].[sellers_dataset]
+	([seller_id],
+    [seller_zip_code_prefix],
+    [seller_city],
+    [seller_state]
+    )
+SELECT *
+FROM [bronze].[sellers_dataset]
