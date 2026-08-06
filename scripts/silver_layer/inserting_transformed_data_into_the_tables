@@ -39,6 +39,38 @@ SELECT
 	payment_value
 FROM [bronze].[order_payments_dataset]
 
+INSERT INTO [silver].[order_reviews_dataset]
+(
+    review_id,
+    order_id,
+    review_score,
+    review_comment_title,
+    review_comment_message,
+    review_creation_date,
+    review_answer_timestamp
+)
+SELECT
+    review_id,
+    order_id,
+    review_score,
+    ISNULL(review_comment_title, 'n/a') AS review_comment_title,
+    ISNULL(review_comment_message, 'n/a') AS review_comment_message,
+    review_creation_date,
+    review_answer_timestamp
+FROM [bronze].[order_reviews_dataset]
+
+INSERT INTO [silver].[order_items_dataset]
+(
+	[order_id],
+	[order_item_id],
+	[product_id],
+	[seller_id],
+	[shipping_limit_date],
+	[price],
+	[freight_value]
+)
+SELECT * FROM [bronze].[order_items_dataset]
+
 INSERT INTO [silver].[products_dataset]
 	([product_id],
     [product_category_name],
@@ -70,3 +102,21 @@ INSERT INTO [silver].[sellers_dataset]
     )
 SELECT *
 FROM [bronze].[sellers_dataset]
+
+INSERT INTO [silver].[product_category_name_translation]
+(
+	[product_category_name],
+	[product_category_name_english]
+)
+SELECT *
+FROM [bronze].[product_category_name_translation]
+
+INSERT INTO [silver].[geolocation_dataset]
+(	[zip_code_prefix],
+	[geolocation_lat],
+	[geolocation_lng],
+	[geolocation_city],
+	[geolocation_state]
+)
+SELECT *
+FROM [bronze].[geolocation_dataset]
