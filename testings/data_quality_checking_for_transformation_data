@@ -106,3 +106,105 @@ SELECT
 	payment_value
 FROM [bronze].[order_payments_dataset]
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Order Reviews dataset
+
+-- Checking for NULL values.
+SELECT
+    * 
+FROM [bronze].[order_reviews_dataset]
+WHERE review_comment_message IS NULL OR review_comment_title IS NULL
+-- Most review titles and review messages are NULL.
+-- This indicates that many customers submitted only a numerical rating
+-- without providing written feedback.
+
+-- Calculating the percentage of reviews without written comments.
+SELECT
+    (CAST(COUNT(*) - COUNT(review_comment_message) AS FLOAT) / COUNT(*)) * 100 AS no_comment_percentage
+FROM [bronze].[order_reviews_dataset]
+-- Result: Approximately 58% of the reviews do not contain a review comment.
+
+-- Checking the range of review ratings.
+SELECT DISTINCT(review_score)
+FROM [bronze].[order_reviews_dataset]
+-- Result: Review scores range from 1 to 5, representing the complete rating scale.
+
+-- Checking for duplicate review and order identifiers.
+SELECT 
+    COUNT(DISTINCT review_id) AS distinct_review_id,
+    COUNT(review_id) AS total_review_id,
+    COUNT(DISTINCT order_id) AS distinct_order_id,
+    COUNT(order_id) AS total_order_id
+FROM [bronze].[order_reviews_dataset]
+-- The total number of review IDs exceeds the number of distinct review IDs,
+-- and the same observation applies to order IDs.
+-- This suggests that multiple records share the same review_id and/or order_id,
+-- warranting further investigation to determine whether these represent
+-- legitimate business scenarios or data quality issues.
+
+-- Investigating orders associated with multiple review records.
+SELECT *
+FROM [bronze].[order_reviews_dataset]
+WHERE order_id IN (
+    SELECT order_id
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (
+                PARTITION BY order_id
+                ORDER BY review_creation_date
+            ) AS order_id_count,
+            review_id,
+            order_id,
+            review_score,
+            review_comment_message,
+            review_creation_date,
+            review_answer_timestamp
+        FROM [bronze].[order_reviews_dataset]
+    ) t
+    WHERE order_id_count > 1
+)
+ORDER BY order_id, review_creation_date
+-- Some orders are associated with multiple review records. Each review has a unique review_id, 
+-- indicating that these are separate review entries rather than duplicated rows.
+-- According to the business context of the Olist dataset, a single order may legitimately receive multiple reviews.
+-- Therefore, these records are considered valid and will be retained during the Silver layer transformation.
+
+-- Investigating review IDs associated with multiple orders.
+SELECT *
+FROM [bronze].[order_reviews_dataset]
+WHERE review_id IN (
+    SELECT review_id
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (
+                PARTITION BY review_id
+                ORDER BY review_creation_date
+            ) AS review_id_count,
+            review_id,
+            order_id,
+            review_score,
+            review_comment_message,
+            review_creation_date,
+            review_answer_timestamp
+        FROM [bronze].[order_reviews_dataset]
+    ) t
+    WHERE review_id_count > 1
+)
+ORDER BY review_id, review_creation_date
+-- Some review IDs are associated with multiple orders. This indicates that a single customer review was linked to 
+-- more than one order, which is a valid business scenario in the Olist dataset rather than a duplicated record.
+-- Therefore, these records should not be treated as data quality issues.
+
+-- Standardizing missing review titles and messages by replacing NULL values with 'n/a'
+-- to ensure consistent representation of unavailable text fields.
+SELECT
+    review_id,
+    order_id,
+    review_score,
+    ISNULL(review_comment_title, 'n/a') AS review_comment_title,
+    ISNULL(review_comment_message, 'n/a') AS review_comment_message,
+    review_creation_date,
+    review_answer_timestamp
+FROM [bronze].[order_reviews_dataset]
+-- ============================================================================================================================== 
