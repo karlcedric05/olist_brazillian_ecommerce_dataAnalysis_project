@@ -3,18 +3,21 @@
 -- Documentations will also be included to reason each decision making 
 
 -- ============================================================================================================================== 
+-- ============================================================================================================================== 
 
 -- Customers' dataset
--- Checking null values
+
+-- Checking for NULL values
 SELECT * FROM [bronze].[customers_dataset]
 WHERE customer_unique_id IS NULL OR customer_zip_code_prefix IS NULL OR customer_city IS NULL OR customer_state IS NULL
 
--- Checking any duplicated values
+-- Checking for duplicate customer records
 SELECT COUNT(customer_id) FROM [bronze].[customers_dataset]
 GROUP BY customer_id
 HAVING COUNT(DISTINCT customer_id) != 1
 
--- Checking Customers' city and state distinct values (checking if there are inconsistencies regarding values)
+-- Checking the distinct values of customer cities and states
+-- to identify potential inconsistencies in naming conventions or data entry.
 
 SELECT DISTINCT customer_city FROM [bronze].[customers_dataset]
 ORDER BY customer_city
@@ -22,7 +25,46 @@ ORDER BY customer_city
 SELECT DISTINCT customer_state FROM [bronze].[customers_dataset]
 ORDER BY customer_state
 
--- Seems like data in this table is tidy and therefore ready to be put into the silver layer
-SELECT * FROM [bronze].[customers_dataset]
+-- The dataset appears to be clean, with no missing values in the inspected columns,
+-- no duplicate customer records, and no obvious inconsistencies in city or state values.
+-- Based on these findings, the dataset is ready to be promoted to the Silver layer
+-- for further cleansing and standardization.
 
+SELECT * FROM [bronze].[customers_dataset]
+-- ============================================================================================================================== 
+-- ============================================================================================================================== 
+
+-- Orders' dataset
+
+-- Checking for NULL values
+
+SELECT * FROM [bronze].[orders_dataset] 
+WHERE order_approved_at IS NULL 
+
+SELECT * FROM [bronze].[orders_dataset] 
+WHERE order_delivered_customer_date IS NULL 
+
+SELECT DISTINCT(order_status) FROM [bronze].[orders_dataset] 
+WHERE (order_delivered_carrier_date IS NULL OR order_delivered_customer_date IS NULL) 
+-- Checking the order statuses associated with missing delivery dates.
+-- The statuses (created, canceled, approved, processing, unavailable, invoiced) are plausible,
+-- as these orders have not yet reached the shipping stage.
+-- The 'shipped' status may indicate that the order is still in transit or that the customer delivery date was not recorded.
+-- Lastly, some orders have a 'delivered' status even though the delivery-to-carrier or delivery-to-customer dates were not recorded.
+
+SELECT * FROM [bronze].[orders_dataset] 
+WHERE order_approved_at IS NULL AND order_delivered_carrier_date IS NULL AND order_delivered_customer_date IS NULL 
+-- A clear pattern emerges where the order approval date, carrier delivery date, and customer delivery date are all NULL.
+-- This most likely indicates that the order was canceled before progressing through the fulfillment process.
+
+SELECT * FROM [bronze].[orders_dataset] 
+WHERE order_approved_at IS NULL AND order_delivered_carrier_date IS NULL AND order_delivered_customer_date IS NULL AND order_status != 'canceled'
+-- Five records have a 'created' status under the same conditions described above.
+-- This is expected, as these orders were created in the system but had not yet reached the approval stage.
+
+-- The table contains no duplicate records, which simplifies the data quality assessment.
+-- Additionally, the observed NULL values are consistent with the business process and can be logically explained.
+-- With these findings, the dataset is ready to proceed to the Silver layer.\
+
+SELECT * FROM [bronze].[orders_dataset] 
 -- ============================================================================================================================== 
