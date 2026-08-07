@@ -75,3 +75,48 @@ FROM [silver].[sellers_dataset] AS sd
 LEFT JOIN cte_lat_and_long AS l
 ON seller_zip_code_prefix = zip_code_prefix
 -- ============================================================================================
+-- ============================================================================================
+/*
+Business Logic:
+    - Generates a sequential surrogate key for each product.
+    - Translates product category names into English.
+    - Renames technical column names into business-friendly attributes.
+    - Preserves all product records, even when a category translation
+      is unavailable.
+Output:
+    One row per product containing product identifiers, descriptive
+    attributes, physical dimensions, and translated product categories.
+*/
+
+CREATE VIEW gold.dim_products AS
+
+WITH cte_name_translation AS
+(
+    -- Retrieves the English translation for product category.
+    SELECT
+        product_category_name,
+        product_category_name_english
+    FROM silver.product_category_name_translation
+)
+
+SELECT
+    -- Generates a sequential surrogate key for analytical purposes.
+    ROW_NUMBER() OVER (ORDER BY product_id) AS product_key,
+    -- Business key from the source system.
+    product_id,
+    -- Business-friendly product category.
+    nt.product_category_name_english AS product_category,
+    -- Product descriptive attributes.
+    product_name_length AS name_length,
+    product_description_lenght AS description_length,
+    product_photos_qty AS photos_quantity,
+    -- Product physical attributes.
+    product_weight_g AS weight_in_grams,
+    product_length_cm AS length_in_cm,
+    product_height_cm AS height_in_cm,
+    product_width_cm AS width_in_cm
+FROM silver.products_dataset AS pd
+-- Preserves every product even if an English translation is unavailable for its category.
+LEFT JOIN cte_name_translation AS nt
+ON pd.product_category_name = nt.product_category_name
+-- ============================================================================================
