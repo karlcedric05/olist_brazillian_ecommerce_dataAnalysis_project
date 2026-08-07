@@ -39,3 +39,39 @@ FROM silver.customers_dataset AS cd
 LEFT JOIN cte_lat_and_long AS l -- LEFT JOIN to preserve every customer record
 ON cd.customer_zip_code_prefix = l.zip_code_prefix
 -- ============================================================================================
+-- ============================================================================================
+
+/*  Same business logic with the gold.dim_customers
+    But with the information about the sellers
+    Output:
+    One row per seller containing seller identifiers, location
+    information, and geographical coordinates.
+*/
+CREATE VIEW gold.dim_sellers AS
+WITH cte_lat_and_long AS
+(
+    -- The geolocation dataset contains multiple latitude and longitude
+    -- records for the same ZIP code prefix. Aggregating these values
+    -- prevents duplicate customer records after joining and provides
+    -- a representative geographic coordinate for each ZIP code.
+    SELECT
+        zip_code_prefix,
+        AVG(geolocation_lat) AS latitude,
+        AVG(geolocation_lng) AS longitude
+    FROM silver.geolocation_dataset
+    GROUP BY zip_code_prefix
+)
+
+
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY sd.seller_id) AS seller_key,
+    sd.seller_id,
+    zip_code_prefix,
+    sd.seller_city AS city,
+    sd.seller_state AS state,
+    l.latitude,
+    l.longitude
+FROM [silver].[sellers_dataset] AS sd
+LEFT JOIN cte_lat_and_long AS l
+ON seller_zip_code_prefix = zip_code_prefix
+-- ============================================================================================
