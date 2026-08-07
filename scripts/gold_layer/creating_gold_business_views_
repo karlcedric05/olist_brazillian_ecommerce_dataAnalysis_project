@@ -125,7 +125,8 @@ ON pd.product_category_name = nt.product_category_name
 Purpose:
     Creates the Order Fact view by combining order-level information with
     individual order-item details, customer surrogate keys, product and
-    seller surrogate keys, and aggregated/computed payment information for order-level and order-item-level .
+    seller surrogate keys, aggregated/computed payment information for order-level and order-item-level
+    and aggregated information about the reviews to each orders from the customers.
 Business Grain:
     One row represents one item within an order.
 Business Logic:
@@ -179,6 +180,15 @@ cte_payments AS
         COUNT(*) AS payment_count -- Counts the number of payment records associated with the order.
     FROM silver.order_payments_dataset
     GROUP BY order_id
+),
+cte_reviews AS 
+(
+SELECT 
+    order_id,
+    AVG(review_score) AS average_rating, -- Based on our findings, a single order may have two reviews, and we would love to get the average score for that
+    COUNT(*) AS review_count -- Tells how many times an order has given a review
+FROM [silver].[order_reviews_dataset] 
+GROUP BY order_id
 )
 SELECT
     od.order_id,
@@ -204,12 +214,17 @@ SELECT
     -- individual order item. They intentionally repeat for each
     -- item belonging to the same order.
     cp.total_payment_value AS order_total_payment,
-    cp.payment_count
+    cp.payment_count,
+    -- Order level quantitative innformation regarding ratings, and reviews
+    cr.average_rating,
+    cr.review_count
 FROM [silver].[orders_dataset] AS od
 LEFT JOIN [gold].[dim_customers] AS dc
 ON dc.customer_id = od.customer_id
 LEFT JOIN cte_order_items AS coi
 ON coi.order_id = od.order_id
 LEFT JOIN cte_payments AS cp -- Join the order-level payment summary.
-ON cp.order_id = od.order_id;
+ON cp.order_id = od.order_id
+LEFT JOIN cte_reviews AS cr
+ON cr.order_id = od.order_id
 -- ============================================================================================
