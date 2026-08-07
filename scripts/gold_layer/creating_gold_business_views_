@@ -1,0 +1,41 @@
+-- ============================================================================================
+/*
+Business Logic:
+    - Generates a sequential customer surrogate key.
+    - Preserves one record per customer.
+    - Enriches customer records with latitude and longitude based on their
+      ZIP code prefix.
+Output:
+    One row per customer containing customer identifiers, location
+    information, and geographical coordinates.
+*/
+CREATE VIEW gold.dim_customers AS
+WITH cte_lat_and_long AS
+(
+    -- The geolocation dataset contains multiple latitude and longitude
+    -- records for the same ZIP code prefix. Aggregating these values (Used AVG)
+    -- prevents duplicate customer records after joining and provides
+    -- a representative geographic coordinate for each ZIP code.
+    SELECT
+        zip_code_prefix,
+        AVG(geolocation_lat) AS latitude,
+        AVG(geolocation_lng) AS longitude
+    FROM silver.geolocation_dataset
+    GROUP BY zip_code_prefix
+)
+SELECT
+    -- Generates a sequential surrogate key for analytical purposes.
+    ROW_NUMBER() OVER (ORDER BY cd.customer_id) AS customer_key,
+    cd.customer_id,
+    cd.customer_unique_id,
+    -- Customer location attributes with user-friendly names
+    cd.customer_zip_code_prefix AS zip_code_prefix,
+    cd.customer_city AS city,
+    cd.customer_state AS state,
+    -- Representative geographic coordinates derived from the customer's ZIP code prefix.
+    l.latitude,
+    l.longitude
+FROM silver.customers_dataset AS cd
+LEFT JOIN cte_lat_and_long AS l -- LEFT JOIN to preserve every customer record
+ON cd.customer_zip_code_prefix = l.zip_code_prefix
+-- ============================================================================================
