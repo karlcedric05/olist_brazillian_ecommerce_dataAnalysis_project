@@ -185,8 +185,8 @@ cte_reviews AS
 (
 SELECT 
     order_id,
-    AVG(review_score) AS average_rating, -- Based on our findings, a single order may have two reviews, and we would love to get the average score for that
-    COUNT(*) AS review_count -- Tells how many times an order has given a review
+    AVG(review_score) AS average_rating, -- An order can have multiple review records, so the average score provides one representative rating at the order level.
+    COUNT(*) AS review_count -- Tells how many times an order has been given a review
 FROM [silver].[order_reviews_dataset] 
 GROUP BY order_id
 )
