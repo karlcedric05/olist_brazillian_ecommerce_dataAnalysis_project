@@ -120,3 +120,96 @@ FROM silver.products_dataset AS pd
 LEFT JOIN cte_name_translation AS nt
 ON pd.product_category_name = nt.product_category_name
 -- ============================================================================================
+-- ============================================================================================
+/*
+Purpose:
+    Creates the Order Fact view by combining order-level information with
+    individual order-item details, customer surrogate keys, product and
+    seller surrogate keys, and aggregated/computed payment information for order-level and order-item-level .
+Business Grain:
+    One row represents one item within an order.
+Business Logic:
+    - Uses order_items_dataset to establish the fact grain.
+    - Replaces source product_id and seller_id values with surrogate keys
+      from the corresponding Gold dimensions.
+    - Uses the Customer Dimension to replace the source customer identifier
+      with the customer surrogate key.
+    - Preserves individual order-item pricing and shipping information.
+    - Renames technical source columns into business-friendly names.
+Output:
+    One row per order item containing:
+    - Order status and lifecycle dates
+    - Customer, product, and seller surrogate keys
+    - Order-item information
+    - Item price and shipping fee
+    - Total payment amount and payment count at the order level and at the order-item level
+*/
+CREATE VIEW gold.fact_orders AS
+-- Enrich individual order items with the corresponding product and seller
+-- surrogate keys while maintaining the order-item grain.
+WITH cte_order_items AS
+(
+    SELECT
+        otd.order_id,
+        otd.order_item_id,
+        -- Product surrogate key used to establish the relationship
+        -- between the fact and Product Dimension.
+        dp.product_key,
+        -- Seller surrogate key used to establish the relationship
+        -- between the fact and Seller Dimension.
+        ds.seller_key,
+        otd.shipping_limit_date,
+        otd.price,
+        otd.freight_value AS shipping_fee -- "shipping_fee" provides a more business-friendly name 
+    FROM [silver].[order_items_dataset] AS otd
+    -- Retrieve the Product Dimension surrogate key.
+    LEFT JOIN [gold].[dim_products] AS dp
+    ON dp.product_id = otd.product_id
+    -- Retrieve the Seller Dimension surrogate key.
+    LEFT JOIN [gold].[dim_sellers] AS ds
+    ON ds.seller_id = otd.seller_id
+),
+cte_payments AS
+(
+    SELECT
+        order_id,
+        -- Aggregate all payment transactions belonging to the same
+        -- order so that this CTE contains only one row per order.
+        SUM(payment_value) AS total_payment_value,
+        COUNT(*) AS payment_count -- Counts the number of payment records associated with the order.
+    FROM silver.order_payments_dataset
+    GROUP BY order_id
+)
+SELECT
+    od.order_id,
+    od.order_status,
+    -- Customer surrogate key replaces the source customer identifier for the relationship with the Customer Dimension.
+    dc.customer_key,
+    coi.product_key,
+    coi.seller_key,
+    coi.shipping_limit_date,
+    -- Business-friendly names for order lifecycle timestamps.
+    od.order_purchase_timestamp AS purchase_date,
+    od.order_approved_at AS approval_date,
+    od.order_delivered_carrier_date AS carrier_delivery_date,
+    od.order_delivered_customer_date AS customer_delivery_date,
+    od.order_estimated_delivery_date AS estimated_delivery_date,
+    -- Individual order-item attributes.
+    coi.order_item_id,
+    coi.price,
+    coi.shipping_fee,
+    -- These measures the payment for individual order item
+    coi.price + coi.shipping_fee AS order_item_payment,
+    -- These measures represent the entire order rather than the
+    -- individual order item. They intentionally repeat for each
+    -- item belonging to the same order.
+    cp.total_payment_value AS order_total_payment,
+    cp.payment_count
+FROM [silver].[orders_dataset] AS od
+LEFT JOIN [gold].[dim_customers] AS dc
+ON dc.customer_id = od.customer_id
+LEFT JOIN cte_order_items AS coi
+ON coi.order_id = od.order_id
+LEFT JOIN cte_payments AS cp -- Join the order-level payment summary.
+ON cp.order_id = od.order_id;
+-- ============================================================================================
