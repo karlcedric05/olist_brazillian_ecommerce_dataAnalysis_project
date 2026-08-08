@@ -150,6 +150,14 @@ SELECT
     DATEDIFF(MONTH, MIN(purchase_date), MAX(purchase_date)) AS scope_in_months
 FROM gold.fact_orders
 
+-- Order status distribution of orders
+SELECT
+    order_status,
+    COUNT(DISTINCT order_id) AS order_count
+FROM gold.fact_orders
+GROUP BY order_status
+ORDER BY order_count DESC;
+
 -- Creates a summary of key business metrics
 SELECT 
 	'total_sales' AS measure_name,
