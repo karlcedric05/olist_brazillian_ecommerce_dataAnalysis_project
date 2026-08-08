@@ -222,7 +222,7 @@ ON dp.product_key = fo.product_key
 GROUP BY dp.product_category
 ORDER BY total_sales DESC
 
--- Magnitude analysis: Identifying locations of with the highest customer revenue
+-- Magnitude analysis: Identifying locations of the highest customer revenue
 -- Revenue is aggregated by state to identify the strongest-performing customer regions.
 SELECT 
     dc.state,
@@ -233,4 +233,49 @@ LEFT JOIN [gold].[dim_customers] AS dc
     ON dc.customer_key = fo.customer_key
 GROUP BY dc.state, dc.city
 ORDER BY total_sales DESC
+
+-- Customer performance: Identifying customers with the highest revenue
+-- Also measures the number of orders placed by each unique customer.
+SELECT 
+	dc.customer_unique_id AS unique_customer_id,
+	COUNT(DISTINCT order_id) AS total_orders,
+	SUM(order_item_payment) AS total_revenue
+FROM [gold].[fact_orders] AS fo
+LEFT JOIN [gold].[dim_customers] AS dc
+ON dc.customer_key = fo.customer_key
+GROUP BY dc.customer_unique_id
+ORDER BY total_revenue DESC
+
+-- Monthly order and sales trends
+-- Tracks changes in order volume and revenue over time.
+SELECT 
+	DATETRUNC(MONTH, purchase_date) AS order_year_and_month,
+	COUNT(DISTINCT order_id) AS total_orders,
+	SUM(order_item_payment) AS total_sales
+FROM [gold].[fact_orders]
+GROUP BY DATETRUNC(MONTH, purchase_date)
+ORDER BY order_year_and_month
+
+-- Orders' delivery-performance analysis
+-- Measures the time taken for delivered orders to reach the customer.
+-- Orders without a completed delivery are excluded from this analysis.
+WITH cte_order_purchase_and_delivery_date AS (
+	SELECT
+		order_id,
+		MAX(purchase_date) AS purchase_date,
+		MAX(customer_delivery_date) AS delivery_date,
+		DATEDIFF(DAY, MAX(purchase_date),MAX(customer_delivery_date)) AS purchase_to_delivery_interval
+	FROM (
+		SELECT * 
+		FROM [gold].[fact_orders]
+		WHERE order_status = 'delivered' 
+		)t
+	GROUP BY order_id)
+
+SELECT
+	AVG(CAST(purchase_to_delivery_interval AS FLOAT)) AS avg_delivery_days,
+	MAX(purchase_to_delivery_interval) AS maximum_delivery_days,
+	MIN(purchase_to_delivery_interval) AS minimum_delivery_days
+FROM cte_order_purchase_and_delivery_date
+
 
