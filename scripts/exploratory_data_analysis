@@ -1,1 +1,228 @@
+-- ============================================================
+-- Exploratory Data Analysis (EDA)
+-- ============================================================
+-- Purpose:
+-- Explore and understand structure, distributions, patterns, and basic
+-- relationships before performing advanced analytical techniques.
+-- Focus:
+--   - Understand the characteristics of the data
+--   - Explore distributions and categorical values
+--   - Identify basic trends and patterns
+--   - Compare groups and summarize business metrics
+--   - Identify potential anomalies and areas for deeper analysis
+--
+-- SQL Techniques:
+--   - SELECT and WHERE
+--   - ORDER BY
+--   - DISTINCT
+--   - Aggregate functions (COUNT, SUM, AVG, MIN, MAX)
+--   - GROUP BY and HAVING
+--   - Basic JOIN operations
+--   - Subqueries
+--   - CASE expressions
+
+
+-- Total customers checking
+SELECT COUNT(*) AS total_customers
+FROM gold.dim_customers
+
+-- Total unique customers checking
+SELECT COUNT(DISTINCT customer_unique_id) AS total_unique_customers
+FROM gold.dim_customers
+
+-- Exploring how customers are distributed across different locations
+SELECT 
+	state,
+	city,
+	COUNT(*) AS customer_count 
+FROM gold.dim_customers
+GROUP BY state, city
+ORDER BY state, city
+
+-- Exploring how unique customers are distributed across different locations
+SELECT 
+	state,
+	city,
+	COUNT(DISTINCT customer_unique_id) AS customer_count 
+FROM gold.dim_customers
+GROUP BY state, city
+ORDER BY state, city
+
+-- Ranking analysis: Identifying the top 8 cities by customer count
+SELECT TOP 8
+	state,
+	city,
+	COUNT(*) AS customer_count 
+FROM gold.dim_customers
+GROUP BY state, city
+ORDER BY customer_count DESC
+
+-- Ranking analysis: Identifying the top 8 cities by unique customer count
+SELECT TOP 8
+	state,
+	city,
+	COUNT(DISTINCT customer_unique_id) AS customer_count 
+FROM gold.dim_customers
+GROUP BY state, city
+ORDER BY customer_count DESC;
+
+-- Total sellers checking
+SELECT COUNT (*) AS seller_count
+FROM [gold].[dim_sellers]
+
+-- Exploring how sellers are distributed across different locations
+SELECT
+	state,
+	city,
+	COUNT(*) AS sellers_count
+FROM [gold].[dim_sellers]
+GROUP BY state, city
+ORDER BY state,city
+
+-- Ranking analysis: Identifying the top 8 cities by seller count
+SELECT TOP 8
+	state,
+	city,
+	COUNT(*) AS sellers_count
+FROM [gold].[dim_sellers]
+GROUP BY state, city
+ORDER BY sellers_count DESC
+
+-- Total number of products in the catalog
+SELECT COUNT(*) AS total_products
+FROM [gold].[dim_products]
+
+-- Number of distinct product categories
+SELECT COUNT(DISTINCT product_category) AS total_categories
+FROM [gold].[dim_products]
+
+-- Exploring the distribution of products across categories
+SELECT
+    product_category,
+    COUNT(*) AS product_count
+FROM [gold].[dim_products]
+GROUP BY product_category
+
+-- Ranking the top 10 categories by number of products
+SELECT TOP 10
+    product_category,
+    COUNT(*) AS product_count
+FROM [gold].[dim_products]
+GROUP BY product_category
+ORDER BY product_count DESC
+
+-- Exploring average product description length across categories
+SELECT
+    product_category,
+    AVG(description_length) AS avg_description_length
+FROM gold.dim_products
+GROUP BY product_category
+ORDER BY avg_description_length DESC
+
+-- Exploring the average number of photos per product category
+SELECT
+    product_category,
+    AVG(photos_quantity) AS avg_photos
+FROM gold.dim_products
+GROUP BY product_category
+ORDER BY avg_photos DESC
+
+-- Comparing average product weight across categories
+SELECT
+    product_category,
+    AVG(weight_in_grams) AS avg_weight_grams
+FROM gold.dim_products
+GROUP BY product_category
+ORDER BY avg_weight_grams DESC
+
+-- Comparing average product volume across categories
+SELECT 
+    product_category,
+    AVG(length_in_cm * height_in_cm * width_in_cm) AS avg_volume_cm3
+FROM gold.dim_products
+GROUP BY product_category
+ORDER BY avg_volume_cm3 DESC
+
+-- Calculates the time range covered by the fact dataset
+SELECT
+    MIN(purchase_date) AS first_order,
+    MAX(purchase_date) AS last_order,
+    DATEDIFF(MONTH, MIN(purchase_date), MAX(purchase_date)) AS scope_in_months
+FROM gold.fact_orders
+
+-- Creates a summary of key business metrics
+SELECT 
+	'total_sales' AS measure_name,
+	SUM(order_item_payment) AS measure_value-- Total sales generated from all orders
+FROM [gold].[fact_orders]
+UNION ALL
+SELECT 
+	'total_orders', -- Total number of unique orders
+	COUNT(DISTINCT order_id)
+FROM [gold].[fact_orders]
+UNION ALL
+SELECT 
+	'total_order_items', -- Total number of items purchased
+	COUNT(*)
+FROM [gold].[fact_orders]
+UNION ALL
+-- Calculating the average sales value per order
+-- Aggregates order-item payments to the order level before calculating the average.
+SELECT 
+	'avg_sales',
+	AVG(order_sales)
+FROM (
+	SELECT
+		order_id,
+		SUM(order_item_payment) AS order_sales
+	FROM [gold].[fact_orders]
+	GROUP BY order_id
+)t
+UNION ALL
+SELECT 
+	'avg_price'  ,
+	AVG(price)   -- Average price of individual order items
+FROM [gold].[fact_orders]
+UNION ALL
+SELECT 
+	'avg_shipping_fee',
+	AVG(shipping_fee)  -- Average shipping fee per order item
+FROM [gold].[fact_orders]
+UNION ALL
+-- Calculates the average customer rating at the order level
+-- Prevents orders with multiple items from disproportionately affecting the result.
+SELECT 
+	'avg_rating', 
+	AVG(average_rating) AS avg_rating
+FROM (
+	SELECT 
+		order_id,
+		MAX(average_rating) AS average_rating
+	FROM [gold].[fact_orders]
+	GROUP BY order_id
+)t
+
+-- Magnitude analysis: Product that gives the highest revenue
+-- Since i've realized that we only have access to product categories
+-- I would instead check their performance based on categories
+SELECT 
+	dp.product_category,
+	SUM(order_item_payment) AS total_sales
+FROM [gold].[fact_orders] AS fo
+LEFT JOIN [gold].[dim_products] AS dp
+ON dp.product_key = fo.product_key
+GROUP BY dp.product_category
+ORDER BY total_sales DESC
+
+-- Magnitude analysis: Identifying locations of with the highest customer revenue
+-- Revenue is aggregated by state to identify the strongest-performing customer regions.
+SELECT 
+    dc.state,
+	dc.city,
+    SUM(fo.order_item_payment) AS total_sales
+FROM [gold].[fact_orders] AS fo
+LEFT JOIN [gold].[dim_customers] AS dc
+    ON dc.customer_key = fo.customer_key
+GROUP BY dc.state, dc.city
+ORDER BY total_sales DESC
 
