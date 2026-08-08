@@ -10,7 +10,6 @@
 --   - Identify basic trends and patterns
 --   - Compare groups and summarize business metrics
 --   - Identify potential anomalies and areas for deeper analysis
---
 -- SQL Techniques:
 --   - SELECT and WHERE
 --   - ORDER BY
@@ -19,8 +18,6 @@
 --   - GROUP BY and HAVING
 --   - Basic JOIN operations
 --   - Subqueries
---   - CASE expressions
-
 
 -- Total customers checking
 SELECT COUNT(*) AS total_customers
