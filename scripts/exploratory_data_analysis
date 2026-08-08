@@ -202,9 +202,9 @@ FROM (
 	GROUP BY order_id
 )t
 
--- Magnitude analysis: Product that gives the highest revenue
--- Since i've realized that we only have access to product categories
--- I would instead check their performance based on categories
+-- Magnitude analysis: Identifying product categories with the highest revenue
+-- Since individual product performance is not the focus of this analysis,
+-- revenue is aggregated by product category to identify the strongest-performing categories.
 SELECT 
 	dp.product_category,
 	SUM(order_item_payment) AS total_sales
