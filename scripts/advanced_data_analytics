@@ -58,3 +58,22 @@ ON dc.customer_key = fo.customer_key
 GROUP BY 
     dc.customer_unique_id;
 GO
+-- ============================================================
+SELECT 
+    customer,
+    CASE 
+    WHEN total_orders = 1 THEN 'ONE-TIME'
+    WHEN total_orders IN (2,3) THEN 'OCCASIONAL'
+    ELSE 'REGULAR' 
+    END AS customer_purchase_behavior, -- Frequency/ Purchase behavior of the customer
+    CASE
+        WHEN monetary_score = 5 THEN 'HIGH-VALUE' 
+        ELSE 'LOW-VALUE'
+    END AS monetary_value, -- Monetary value
+    CASE
+        WHEN recency_score > 4 THEN 'ACTIVE'
+        WHEN recency_score = 3 THEN 'MODERATELY ACTIVE'
+        ELSE 'INACTIVE'
+    END AS customer_recency
+FROM [gold].[vw_customer_report]
+
