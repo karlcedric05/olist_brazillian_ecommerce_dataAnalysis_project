@@ -1,0 +1,46 @@
+-- ============================================================
+-- Advanced Data Analytics
+-- ============================================================
+-- Who creates value → what creates that value →
+-- where that value comes from → how efficiently we deliver it →
+-- how customers respond → what the business should prioritize.
+
+-- ============================================================
+-- Customer Segmentation
+-- ============================================================
+-- Business Question:
+-- Which types of customers create the most value for the marketplace?
+--
+-- This view creates one record per unique customer and summarizes
+-- their purchasing behavior, revenue contribution, and activity.
+-- The customer_unique_id is used because a single real customer
+-- can have multiple customer_id records across different orders.
+
+IF OBJECT_ID('gold.vw_customer_report', 'V') IS NOT NULL
+    DROP VIEW gold.vw_customer_report;
+GO
+CREATE VIEW gold.vw_customer_report AS
+SELECT 
+    dc.customer_unique_id AS unique_customer_id,
+    SUM(fo.order_item_payment) AS total_revenue, -- Monetary metrics
+    SUM(fo.order_item_payment) / COUNT(DISTINCT fo.order_id) AS average_order_value,
+    COUNT(DISTINCT fo.order_id) AS total_orders, -- Frequency metrics
+    -- Customer timeline
+    MIN(fo.purchase_date) AS first_order_date,
+    MAX(fo.purchase_date) AS last_order_date,
+    DATEDIFF(
+        DAY,
+        MIN(fo.purchase_date),
+        MAX(fo.purchase_date)
+    ) AS customer_lifespan_days,
+    DATEDIFF(
+        DAY,
+        MAX(fo.purchase_date),
+        GETDATE()
+    ) AS customer_recency_days -- Recency
+FROM gold.fact_orders AS fo
+LEFT JOIN gold.dim_customers AS dc
+ON dc.customer_key = fo.customer_key
+GROUP BY 
+    dc.customer_unique_id;
+GO
