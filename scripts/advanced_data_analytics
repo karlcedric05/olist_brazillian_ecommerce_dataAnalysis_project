@@ -21,7 +21,7 @@ IF OBJECT_ID('gold.vw_customer_report', 'V') IS NOT NULL
 GO
 CREATE VIEW gold.vw_customer_report AS
 SELECT 
-    dc.customer_unique_id AS unique_customer_id,
+    dc.customer_unique_id AS customer,
     SUM(fo.order_item_payment) AS total_revenue, -- Monetary metrics
     SUM(fo.order_item_payment) / COUNT(DISTINCT fo.order_id) AS average_order_value,
     COUNT(DISTINCT fo.order_id) AS total_orders, -- Frequency metrics
@@ -37,7 +37,21 @@ SELECT
         DAY,
         MAX(fo.purchase_date),
         GETDATE()
-    ) AS customer_recency_days -- Recency
+    ) AS customer_recency_days, -- Recency
+        -- Monetary scoring:
+        -- NTILE(5) divides customers into five groups based on revenue.
+        -- The highest-revenue 20% receive a score of 5.
+        NTILE(5) OVER (
+            ORDER BY SUM(fo.order_item_payment)
+        ) AS monetary_score,
+        -- Recency scoring:
+        -- More recent customers receive a higher score.
+        NTILE(5) OVER (
+            ORDER BY DATEDIFF(
+        DAY,
+        MAX(fo.purchase_date),
+        GETDATE()) DESC
+        ) AS recency_score
 FROM gold.fact_orders AS fo
 LEFT JOIN gold.dim_customers AS dc
 ON dc.customer_key = fo.customer_key
