@@ -1,4 +1,4 @@
-#olist_brazillian_ecommerce_dataAnalysis_project
+# olist_brazillian_ecommerce_dataAnalysis_project
 This is a project for building a modern data warehouse using SQL server, alongside performing ETLs, exploratory and advanced data analytics. 
 
 ## Project overview
