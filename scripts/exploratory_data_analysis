@@ -219,8 +219,8 @@ ON dp.product_key = fo.product_key
 GROUP BY dp.product_category
 ORDER BY total_sales DESC
 
--- Magnitude analysis: Identifying locations of the highest customer revenue
--- Revenue is aggregated by state to identify the strongest-performing customer regions.
+-- Magnitude analysis: Identifying locations with the highest customer revenue
+-- Revenue is aggregated by state and city to identify the strongest-performing customer regions.
 SELECT 
     dc.state,
 	dc.city,
@@ -229,6 +229,20 @@ FROM [gold].[fact_orders] AS fo
 LEFT JOIN [gold].[dim_customers] AS dc
     ON dc.customer_key = fo.customer_key
 GROUP BY dc.state, dc.city
+ORDER BY total_sales DESC
+
+-- Magnitude analysis: Identifying locations with the highest seller revenue
+-- Revenue is aggregated by state and city to identify the strongest-performing sellers' regions
+SELECT
+	ds.state,
+	ds.city,
+	SUM(order_item_payment) AS total_sales
+FROM [gold].[fact_orders] AS fo
+LEFT JOIN [gold].[dim_sellers] AS ds
+ON ds.seller_key = fo.seller_key
+GROUP BY 
+	ds.state,
+	ds.city
 ORDER BY total_sales DESC
 
 -- Customer performance: Identifying customers with the highest revenue
