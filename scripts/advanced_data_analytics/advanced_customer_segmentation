@@ -57,7 +57,7 @@ SELECT
     DATEDIFF(
         DAY,
         MAX(fo.purchase_date),
-        GETDATE()
+        '2018-10-18' -- The day after the day the last order occured
     ) AS customer_recency_days, -- Days since the customer's most recent order
 
     -- Monetary scoring:
