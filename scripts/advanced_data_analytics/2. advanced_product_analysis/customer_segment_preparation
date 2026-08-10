@@ -8,7 +8,8 @@
 --
 -- Business Question:
 -- Which product categories are purchased by Low-Engagement
--- and High-Value One-Time Customers? (Which two groups we have fount out to be top-performing customers from the customer)
+-- and High-Value One-Time Customers? (Which two groups we have fount out to be top-performing customers from the 
+--                                    advanced_customer_segmentation -> Segment Performance)
 -- ============================================================
 
 WITH cte_customer_segments AS
