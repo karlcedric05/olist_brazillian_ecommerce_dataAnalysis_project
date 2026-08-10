@@ -34,6 +34,6 @@ SELECT
             THEN 'High-Value One-Time Customer'
         ELSE 'Low-Engagement Customer'
     END AS customer_segment
-INTO gold.hvot_and_lec_customers
+INTO gold.hvot_and_lec_customers -- Creates the table
 FROM cte_customer_segments
 WHERE purchase_behavior = 'ONE-TIME'
