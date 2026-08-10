@@ -1,0 +1,38 @@
+-- ============================================================
+-- Customer Segment Preparation
+-- ============================================================
+-- The customer report is computationally expensive because it
+-- calculates customer-level metrics and RFM scores.
+-- Therefore, the ONE-TIME customer segments are materialized
+-- into a physical table for faster downstream analysis.
+--
+-- Business Question:
+-- Which product categories are purchased by Low-Engagement
+-- and High-Value One-Time Customers? (Which two groups we have fount out to be top-performing customers from the customer)
+-- ============================================================
+
+WITH cte_customer_segments AS
+(
+    SELECT
+        customer,
+        CASE
+            WHEN total_orders = 1 THEN 'ONE-TIME'
+            WHEN total_orders IN (2, 3) THEN 'OCCASIONAL'
+            ELSE 'REGULAR'
+        END AS purchase_behavior,
+        CASE
+            WHEN monetary_score = 5 THEN 'HIGH-VALUE'
+            ELSE 'LOW-VALUE'
+        END AS monetary_value
+    FROM gold.vw_customer_report
+)
+SELECT
+    customer,
+    CASE
+        WHEN monetary_value = 'HIGH-VALUE'
+            THEN 'High-Value One-Time Customer'
+        ELSE 'Low-Engagement Customer'
+    END AS customer_segment
+INTO gold.hvot_and_lec_customers
+FROM cte_customer_segments
+WHERE purchase_behavior = 'ONE-TIME'
