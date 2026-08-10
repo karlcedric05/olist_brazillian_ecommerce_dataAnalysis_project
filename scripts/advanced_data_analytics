@@ -50,7 +50,7 @@ SELECT
             ORDER BY DATEDIFF(
         DAY,
         MAX(fo.purchase_date),
-        GETDATE()) DESC
+        '2018-10-18' -- The day after the last order occured ) DESC 
         ) AS recency_score
 FROM gold.fact_orders AS fo
 LEFT JOIN gold.dim_customers AS dc
