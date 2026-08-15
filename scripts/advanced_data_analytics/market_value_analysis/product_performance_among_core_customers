@@ -1,0 +1,32 @@
+-- ============================================================
+-- Product Performance Among Core High-Value Customer
+-- ============================================================
+
+SELECT
+    dp.product_category,
+    COUNT(DISTINCT dc.customer_unique_id)
+        AS core_customer_count,
+    COUNT(*) AS items_sold,
+    SUM(fo.order_item_payment)
+        AS total_revenue,
+    AVG(fo.order_item_payment)
+        AS avg_item_revenue,
+
+    -- Percentage of CORE customers who purchased each category
+    COUNT(DISTINCT dc.customer_unique_id) * 100.0
+        / (
+            SELECT COUNT(*)
+            FROM [gold].[core_customers]
+        ) AS customer_penetration_pct
+
+FROM gold.fact_orders AS fo
+LEFT JOIN gold.dim_customers AS dc
+    ON dc.customer_key = fo.customer_key
+LEFT JOIN gold.dim_products AS dp
+    ON dp.product_key = fo.product_key
+INNER JOIN [gold].[core_customers] AS gcc
+    ON gcc.customer = dc.customer_unique_id
+GROUP BY
+    dp.product_category
+ORDER BY
+    total_revenue DESC
