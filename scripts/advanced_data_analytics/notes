@@ -1,6 +1,22 @@
+ADVANCED DATA ANALYTICS ROADMAP: 
 
-Advanced data analytics road support:
+  Core / High-Value Customers
+  1. Understand who creates sustainable value for the business — Customers.
+      -Identify the customer segments that contribute the greatest and most sustainable economic value.
+  2.Understand what creates value for these customers — Products.
+      -Determine which product categories are most associated with high-value customer spending and contribute most to marketplace revenue.
+  3.Understand who supplies this value — Sellers.
+      -Identify the sellers that contribute most to high-value categories and customers, and determine what distinguishes high-performing sellers.
+  4.Understand what sustains customer value — Retention & Performance.
+      -Investigate the factors associated with customers becoming repeat/high-value customers, such as product categories, sellers, delivery performance, geography, and customer satisfaction.
 
-1. Understand who creates value for the business (Customers). I frame them as the business object that is responsible for creating the value of the business.
-2. Understand what created value for the business (Products). Another business object that facilitates the behavior of WHO CREATES VALUE (customers).
-3. Unnderstand who are supplying values for the business (Sellers). Analyze what distinguish top-performing sellers and their correlation with the top performing categoories
+  At-Risk / Unretained Customers (customer retention risk and opportunity segments)
+  1.Understand the behavior of customers who were not retained.
+      -Examine the purchasing patterns, spending levels, product categories, and seller interactions of customers who made only one purchase.
+  2.Distinguish between valuable and low-value retention opportunities.
+      -Separate High-Value One-Time Customers from Low-Engagement Customers to determine whether the business is losing potentially valuable customers or simply failing to retain low-value customers.
+  3.Identify factors associated with customer non-retention.
+      -Investigate whether delivery performance, seller characteristics, product categories, geography, shipping costs, and customer satisfaction are associated with one-time purchasing behavior.
+  4.Quantify the potential business impact of non-retention.
+      -Estimate how much revenue is represented by these unretained customers and identify which customer groups, locations, products, or sellers represent the greatest retention opportunity.
+
