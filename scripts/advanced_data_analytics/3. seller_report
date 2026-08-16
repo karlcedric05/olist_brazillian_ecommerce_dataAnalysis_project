@@ -1,1 +1,37 @@
+-- ============================================================
+-- Building Seller Report
+-- ============================================================
+-- Measures each seller's customer reach, sales volume, and
+-- revenue contribution to evaluate overall seller performance.
+--
+-- Key metrics:
+--   • Customers served        → Unique customers served by seller
+--   • Items sold              → Number of order-item records sold
+--   • Revenue                 → Total revenue generated
+--   • Average item revenue    → Average revenue generated per item
+--   • Customer penetration    → Seller's share of the total customer base
+--
+-- This report provides the foundation for identifying
+-- high-performing sellers and comparing their reach, volume,
+-- and revenue performance.
+-- ============================================================
+IF OBJECT_ID('gold.vw_seller_report', 'V') IS NOT NULL
+    DROP VIEW gold.vw_seller_report;
+GO
+CREATE VIEW gold.vw_seller_report AS
 
+SELECT
+	gds.seller_id,
+	COUNT(DISTINCT dc.customer_unique_id) AS customer_served,
+	COUNT(*) AS items_sold,
+	SUM(order_item_payment) AS revenue,
+	AVG(order_item_payment) AS average_item_revenue,
+    COUNT(DISTINCT dc.customer_unique_id) * 100.0
+        / (SELECT COUNT(DISTINCT customer_unique_id)
+           FROM [gold].[dim_customers]) AS customer_penetration_pct
+FROM [gold].[fact_orders] AS gfo
+LEFT JOIN [gold].[dim_sellers] AS gds
+	ON gds.seller_key = gfo.seller_key
+LEFT JOIN gold.dim_customers AS dc
+	ON dc.customer_key = gfo.customer_key
+GROUP BY gds.seller_id
