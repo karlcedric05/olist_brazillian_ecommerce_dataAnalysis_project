@@ -1,0 +1,57 @@
+-- ============================================================
+-- Identifies the top-performing sellers within each product
+-- category based on their ability to reach Core Customers and
+-- generate revenue.
+--
+-- The analysis measures:
+--   • Core customers served
+--   • Items sold
+--   • Total revenue
+--   • Average item revenue
+--   • Customer penetration
+--   • Seller revenue contribution within each category
+--   • Seller ranking within each category
+--
+-- Seller IDs are used as the primary reference for analysis,
+-- while seller keys are retained for readability and comparison
+-- with the corresponding seller analysis in Market Risk Analysis.
+-- ============================================================
+SELECT 
+    dp.product_category,
+    ds.seller_id,
+    ds.seller_key,
+    COUNT(DISTINCT dc.customer_unique_id) AS core_customer_count,
+    COUNT(*) AS items_sold,
+    SUM(fo.order_item_payment) AS total_revenue,
+    AVG(fo.order_item_payment) AS avg_item_revenue,
+    -- Percentage of Core customers who purchased from this seller
+    COUNT(DISTINCT dc.customer_unique_id) * 100.0
+        / (
+            SELECT COUNT(*)
+            FROM gold.core_customers
+        ) AS customer_penetration_pct,
+    -- Seller's share of revenue within the product category
+    SUM(fo.order_item_payment) * 100.0
+        / SUM(SUM(fo.order_item_payment)) OVER (
+            PARTITION BY dp.product_category
+        ) AS category_revenue_contribution_pct,
+    -- Seller ranking within each category
+    ROW_NUMBER() OVER (
+        PARTITION BY dp.product_category
+        ORDER BY SUM(fo.order_item_payment) DESC
+    ) AS seller_rank
+
+FROM gold.fact_orders AS fo
+LEFT JOIN gold.dim_sellers AS ds
+    ON ds.seller_key = fo.seller_key
+LEFT JOIN gold.dim_products AS dp
+    ON dp.product_key = fo.product_key
+LEFT JOIN gold.dim_customers AS dc
+    ON dc.customer_key = fo.customer_key
+INNER JOIN gold.core_customers AS gcc
+    ON gcc.customer = dc.customer_unique_id
+GROUP BY 
+    dp.product_category,
+    ds.seller_id,
+    ds.seller_key
+
