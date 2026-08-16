@@ -1,0 +1,20 @@
+-- ============================================================
+-- Identifies the top-performing sellers within each product
+-- category based on their ability to reach HVOT/LEC Customers and
+-- generate revenue.
+--
+-- The analysis measures:
+--   • HVOT/LEC customers served
+--   • Items sold
+--   • Total revenue
+--   • Average item revenue
+--   • Customer penetration
+--   • Seller revenue contribution within each category
+--   • Seller ranking within each category
+--
+-- Seller IDs are used as the primary reference for analysis,
+-- while seller keys are retained for readability and comparison
+-- with the corresponding seller analysis in Market Risk Analysis.
+-- ============================================================
+--  Seller-Product reach to Low Engagement Customers
+-- ============================================================
