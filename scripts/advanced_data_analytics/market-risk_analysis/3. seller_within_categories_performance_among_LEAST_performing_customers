@@ -16,5 +16,116 @@
 -- while seller keys are retained for readability and comparison
 -- with the corresponding seller analysis in Market Risk Analysis.
 -- ============================================================
---  Seller-Product reach to Low Engagement Customers
+-- Seller-Product Reach to Low-Engagement Customers
 -- ============================================================
+
+WITH cte_lec_customers AS
+(
+    SELECT
+        customer
+    FROM gold.hvot_and_lec_customers
+    WHERE customer_segment = 'Low-Engagement Customer'
+)
+
+SELECT 
+    dp.product_category, 
+    ds.seller_id, 
+    ds.seller_key, 
+
+    COUNT(DISTINCT dc.customer_unique_id) AS lec_customer_count, 
+
+    COUNT(*) AS order_items_sold, 
+
+    SUM(fo.order_item_payment) AS total_revenue, 
+
+    AVG(fo.order_item_payment) AS avg_item_revenue, 
+
+    -- Percentage of LEC customers who purchased from this seller
+    COUNT(DISTINCT dc.customer_unique_id) * 100.0 
+        / (
+            SELECT COUNT(*)
+            FROM cte_lec_customers
+        ) AS customer_penetration_pct, 
+
+    -- Seller's share of category revenue within LEC customers
+    SUM(fo.order_item_payment) * 100.0
+        / SUM(SUM(fo.order_item_payment)) OVER (
+            PARTITION BY dp.product_category
+        ) AS category_revenue_contribution_pct, 
+
+    -- Seller ranking within each category among LEC customers
+    ROW_NUMBER() OVER (
+        PARTITION BY dp.product_category
+        ORDER BY SUM(fo.order_item_payment) DESC
+    ) AS seller_rank 
+
+FROM gold.fact_orders AS fo
+
+INNER JOIN gold.dim_sellers AS ds
+    ON ds.seller_key = fo.seller_key
+
+INNER JOIN gold.dim_products AS dp
+    ON dp.product_key = fo.product_key
+
+INNER JOIN gold.dim_customers AS dc
+    ON dc.customer_key = fo.customer_key
+
+INNER JOIN cte_lec_customers AS lc
+    ON lc.customer = dc.customer_unique_id
+
+GROUP BY 
+    dp.product_category,
+    ds.seller_id,
+    ds.seller_key
+
+-- ============================================================
+-- Seller-Product Reach to High-Value One-Time Customers
+-- ============================================================
+
+WITH cte_hvot_customers AS
+(
+    SELECT
+        customer
+    FROM gold.hvot_and_lec_customers
+    WHERE customer_segment = 'High-Value One-Time Customer'
+)
+
+SELECT 
+    dp.product_category, 
+    ds.seller_id, 
+    ds.seller_key, 
+    COUNT(DISTINCT dc.customer_unique_id) AS hvot_customer_count, 
+    COUNT(*) AS order_items_sold, 
+    SUM(fo.order_item_payment) AS total_revenue, 
+    AVG(fo.order_item_payment) AS avg_item_revenue, 
+    -- Percentage of HVOT customers who purchased from this seller
+    COUNT(DISTINCT dc.customer_unique_id) * 100.0 
+        / (
+            SELECT COUNT(*)
+            FROM cte_hvot_customers
+        ) AS customer_penetration_pct, 
+    -- Seller's share of category revenue within HVOT customers
+    SUM(fo.order_item_payment) * 100.0
+        / SUM(SUM(fo.order_item_payment)) OVER (
+            PARTITION BY dp.product_category
+        ) AS category_revenue_contribution_pct, 
+    -- Seller ranking within each category among HVOT customers
+    ROW_NUMBER() OVER (
+        PARTITION BY dp.product_category
+        ORDER BY SUM(fo.order_item_payment) DESC
+    ) AS seller_rank 
+
+FROM gold.fact_orders AS fo
+INNER JOIN gold.dim_sellers AS ds
+    ON ds.seller_key = fo.seller_key
+INNER JOIN gold.dim_products AS dp
+    ON dp.product_key = fo.product_key
+INNER JOIN gold.dim_customers AS dc
+    ON dc.customer_key = fo.customer_key
+INNER JOIN cte_hvot_customers AS hc
+    ON hc.customer = dc.customer_unique_id
+GROUP BY 
+    dp.product_category,
+    ds.seller_id,
+    ds.seller_key
+
