@@ -36,8 +36,11 @@ hvot_customer_records AS (
         customer,
         DATEDIFF(DAY, purchase_date, customer_delivery_date) AS delivery_days,
         CASE 
-            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 THEN 'LATE DELIVERY'
-            ELSE 'ON-TIME DELIVERY'
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 
+                THEN 'EARLY DELIVERY'
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) = 0
+                THEN 'ON-TIME DELIVERY'
+            ELSE 'LATE DELIVERY'
         END AS delivery_time_performance
     FROM lec_customer_records
 ), hvot_delivery_performance AS(
@@ -45,8 +48,11 @@ hvot_customer_records AS (
         customer,
         DATEDIFF(DAY, purchase_date, customer_delivery_date) AS delivery_days,
         CASE 
-            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 THEN 'LATE DELIVERY'
-            ELSE 'ON-TIME DELIVERY'
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 
+                THEN 'EARLY DELIVERY'
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) = 0
+                THEN 'ON-TIME DELIVERY'
+            ELSE 'LATE DELIVERY'
         END AS delivery_time_performance
     FROM hvot_customer_records
 )
