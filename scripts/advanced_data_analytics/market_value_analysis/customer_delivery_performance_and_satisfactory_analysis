@@ -1,0 +1,22 @@
+-- ============================================================
+-- Delivery performance to CORE Customers
+-- ============================================================
+WITH customer_and_order_records AS (
+SELECT
+	customer_unique_id AS customer,
+	purchase_date,
+	shipping_limit_date,
+	estimated_delivery_date,
+	approval_date,
+	carrier_delivery_date,
+	customer_delivery_date
+FROM [gold].[fact_orders] AS fo
+LEFT JOIN [gold].[dim_customers] AS dc
+ON dc.customer_key = fo.customer_key
+), core_customer_records AS (
+SELECT * FROM customer_and_order_records AS caor
+WHERE caor.customer IN 
+					(SELECT
+						customer 
+					FROM [gold].[core_customers])
+					)
