@@ -19,4 +19,16 @@ WHERE caor.customer IN
 					(SELECT
 						customer 
 					FROM [gold].[core_customers])
-					)
+), core_delivery_performance AS(
+    SELECT 
+        customer,
+        DATEDIFF(DAY, purchase_date, customer_delivery_date) AS delivery_days,
+		CASE 
+			WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 
+				THEN 'EARLY DELIVERY'
+			WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) = 0
+				THEN 'ON-TIME DELIVERY'
+			ELSE 'LATE DELIVERY'
+		END AS delivery_time_performance
+    FROM core_customer_records
+)
