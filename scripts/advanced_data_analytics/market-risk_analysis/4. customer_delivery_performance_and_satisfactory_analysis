@@ -1,0 +1,52 @@
+-- ============================================================
+-- Delivery performance to hvot and lec Customers
+-- ============================================================
+WITH customer_and_order_records AS (
+    SELECT
+        dc.customer_unique_id AS customer,
+        fo.purchase_date,
+        fo.shipping_limit_date,
+        fo.estimated_delivery_date,
+        fo.approval_date,
+        fo.carrier_delivery_date,
+        fo.customer_delivery_date
+    FROM gold.fact_orders AS fo
+    LEFT JOIN gold.dim_customers AS dc
+        ON dc.customer_key = fo.customer_key
+),
+lec_customer_records AS (
+    SELECT *
+    FROM customer_and_order_records AS caor
+    WHERE caor.customer IN (
+        SELECT customer
+        FROM gold.hvot_and_lec_customers
+        WHERE customer_segment = 'Low-Engagement Customer'
+    )
+),
+hvot_customer_records AS (
+    SELECT *
+    FROM customer_and_order_records AS caor
+    WHERE caor.customer IN (
+        SELECT customer
+        FROM gold.hvot_and_lec_customers
+        WHERE customer_segment = 'High-Value One-Time Customer'
+    )
+), lec_delivery_performance AS(
+    SELECT 
+        customer,
+        DATEDIFF(DAY, purchase_date, customer_delivery_date) AS delivery_days,
+        CASE 
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 THEN 'LATE DELIVERY'
+            ELSE 'ON-TIME DELIVERY'
+        END AS delivery_time_performance
+    FROM lec_customer_records
+), hvot_delivery_performance AS(
+    SELECT 
+        customer,
+        DATEDIFF(DAY, purchase_date, customer_delivery_date) AS delivery_days,
+        CASE 
+            WHEN DATEDIFF(DAY, estimated_delivery_date, customer_delivery_date) < 0 THEN 'LATE DELIVERY'
+            ELSE 'ON-TIME DELIVERY'
+        END AS delivery_time_performance
+    FROM hvot_customer_records
+)
