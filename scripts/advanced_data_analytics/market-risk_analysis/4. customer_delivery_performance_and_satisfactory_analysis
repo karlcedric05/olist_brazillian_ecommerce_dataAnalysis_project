@@ -56,3 +56,31 @@ hvot_customer_records AS (
         END AS delivery_time_performance
     FROM hvot_customer_records
 )
+
+SELECT 
+	AVG(delivery_days) AS avg_delivery_days,
+    SUM(
+        CASE
+            WHEN delivery_time_performance = 'LATE DELIVERY'
+                THEN 1
+            ELSE 0
+        END
+    ) * 100.0 / COUNT(*) AS late_delivery_rate,
+    STDEV(delivery_days) AS delivery_variability,
+    MIN(delivery_days) AS minimum_delivery_days,
+    MAX(delivery_days) AS maximum_delivery_days
+FROM lec_delivery_performance
+
+SELECT 
+	AVG(delivery_days) AS avg_delivery_days,
+    SUM(
+        CASE
+            WHEN delivery_time_performance = 'LATE DELIVERY'
+                THEN 1
+            ELSE 0
+        END
+    ) * 100.0 / COUNT(*) AS late_delivery_rate,
+    STDEV(delivery_days) AS delivery_variability,
+    MIN(delivery_days) AS minimum_delivery_days,
+    MAX(delivery_days) AS maximum_delivery_days
+FROM hvot_delivery_performance
